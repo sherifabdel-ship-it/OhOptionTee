@@ -1,0 +1,30 @@
+name: options-analysis
+
+on:
+  schedule:
+    - cron: "0 21 * * 1-5"   # 4:00pm ET, Mon-Fri (adjust for your timezone/DST)
+  workflow_dispatch: {}       # lets you also trigger it manually from the Actions tab
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run analysis
+        run: python main.py
+
+      - name: Commit updated outputs
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add outputs/
+          git diff --cached --quiet || git commit -m "Update options analysis outputs"
+          git push
