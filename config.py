@@ -4,7 +4,7 @@
 # ---------------------------------------------------------------
 
 # Tickers to run the whole pipeline on
-TICKERS = ["ETHU", "USO", "SPY"]
+TICKERS = ["AAPL", "USO", "SPY"]
 
 # Turn each feature on (True) or off (False)
 FEATURES = {
@@ -30,7 +30,7 @@ MONEYNESS_RANGE = 0.20
 
 # How many maturities (expirations) to include, nearest-first.
 # None = use all available expirations.
-MAX_MATURITIES = 8
+MAX_MATURITIES = None
 
 # IV rank / percentile settings — the standard is a 252-trading-day
 # (1yr) lookback, but this tool's "days" are however often you run
