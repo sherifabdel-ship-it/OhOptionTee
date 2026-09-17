@@ -4,7 +4,7 @@
 # ---------------------------------------------------------------
 
 # Tickers to run the whole pipeline on
-TICKERS = ["AAPL", "USO", "SPY"]
+TICKERS = ["ETHU", "USO", "SPY"]
 
 # Turn each feature on (True) or off (False)
 FEATURES = {
@@ -20,8 +20,9 @@ FEATURES = {
 MIN_OPEN_INTEREST = 10
 MIN_VOLUME = 1
 
-# Require a real, non-zero bid AND ask. Yahoo's OI/volume fields are
-# often stale, so this is the stronger "can I actually trade it" check.
+# Require a real, non-zero bid or ask (at least one side quoted).
+# Requiring both can wipe out liquid names when markets are closed,
+# since Yahoo often shows one side as 0 outside trading hours.
 REQUIRE_BID_ASK = True
 
 # Only keep strikes within this % of spot (0.20 = strikes from
