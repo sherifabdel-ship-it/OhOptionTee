@@ -25,7 +25,10 @@ def _filter_active(df: pd.DataFrame, spot: float) -> pd.DataFrame:
     if REQUIRE_BID_ASK:
         bid = out["bid"].fillna(0)
         ask = out["ask"].fillna(0)
-        out = out[(bid > 0) & (ask > 0)]
+        # Outside trading hours Yahoo often shows bid=0 or ask=0 on strikes
+        # that still have real open interest, so require just one side
+        # (not both) to avoid wiping out liquid names when markets are closed.
+        out = out[(bid > 0) | (ask > 0)]
 
     if MONEYNESS_RANGE:
         lo, hi = spot * (1 - MONEYNESS_RANGE), spot * (1 + MONEYNESS_RANGE)
