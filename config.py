@@ -4,7 +4,7 @@
 # ---------------------------------------------------------------
 
 # Tickers to run the whole pipeline on
-TICKERS = ["AAPL", "TSLA", "SPY"]
+TICKERS = ["ETHU", "USO", "SPY"]
 
 # Turn each feature on (True) or off (False)
 FEATURES = {
