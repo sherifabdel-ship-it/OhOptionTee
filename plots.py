@@ -4,11 +4,28 @@ config.OUTPUT_DIR and returns the file path.
 """
 
 import os
+import math
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 (registers 3D projection)
 from config import OUTPUT_DIR
+
+RISK_FREE_RATE = 0.045  # rough constant; good enough for gamma, not meant to be precise
+
+
+def _bs_gamma(spot: float, strike: float, days_to_expiry: float, iv: float) -> float:
+    """
+    Black-Scholes gamma. We compute this ourselves because Yahoo's free
+    option chain (via yfinance) does NOT include greeks at all -- only
+    price/bid/ask/IV/OI/volume. Uses the IV Yahoo does give us.
+    """
+    if iv is None or iv <= 0 or days_to_expiry <= 0 or spot <= 0 or strike <= 0:
+        return float("nan")
+    t = days_to_expiry / 365
+    d1 = (math.log(spot / strike) + (RISK_FREE_RATE + 0.5 * iv ** 2) * t) / (iv * math.sqrt(t))
+    pdf = math.exp(-0.5 * d1 ** 2) / math.sqrt(2 * math.pi)
+    return pdf / (spot * iv * math.sqrt(t))
 
 
 def _outpath(name: str) -> str:
@@ -86,16 +103,19 @@ def plot_gamma_wall(ticker: str, chains: dict, nearest_only: bool = True):
     exps = [exp] if nearest_only else chains.keys()
     spot = list(chains.values())[0]["spot"]
     multiplier = 100 * (spot ** 2) * 0.01
+    today = pd.Timestamp.today()
 
     gamma_by_strike = {}
     for e in exps:
         data = chains[e]
+        dte = (pd.Timestamp(e) - today).days
         for side, sign in [("calls", 1), ("puts", -1)]:
             df = data[side]
             for _, row in df.iterrows():
-                g = row.get("gamma", np.nan)
+                iv = row.get("impliedVolatility", np.nan)
                 oi = row.get("openInterest", 0) or 0
-                if pd.isna(g):
+                g = _bs_gamma(spot, row["strike"], dte, iv)
+                if math.isnan(g):
                     continue
                 gex = sign * g * oi * multiplier
                 gamma_by_strike[row["strike"]] = gamma_by_strike.get(row["strike"], 0) + gex
